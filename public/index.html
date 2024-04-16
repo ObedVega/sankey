@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfico Sankey</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.2/dist/d3-sankey.js"></script>
+    <style>
+        /* Estilos CSS para el contenedor de la gráfica y la gráfica SVG */
+        #sankey-container {
+            width: 100%; /* Ancho completo del contenedor */
+            height: 600px; /* Altura fija para la gráfica */
+            border: 1px solid #ccc; /* Borde para el contenedor */
+            margin-bottom: 20px; /* Espacio adicional en la parte inferior */
+        }
+
+        #sankey-container svg {
+            width: 100%; /* Ancho completo de la gráfica SVG */
+            height: 100%; /* Altura completa de la gráfica SVG */
+        }
+
+        rect.node {
+            fill: steelblue; /* Color de relleno para los nodos */
+        }
+
+        path.link {
+            fill: none; /* No rellenar los enlaces */
+            stroke: #999; /* Color del trazo para los enlaces */
+            stroke-opacity: 0.6; /* Opacidad del trazo */
+        }
+    </style>
+</head>
+<body>
+    <div id="sankey-container"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('data.json') // Ruta que devuelve los datos
+                .then(response => response.json())
+                .then(data => {
+                    const { nodes, links } = data; // Obtener nodos y enlaces
+                    
+                    // Crear el diagrama Sankey
+                    const sankey = d3.sankey()
+                        .nodeWidth(15)
+                        .nodePadding(10)
+                        .extent([[1, 1], [800 - 1, 600 - 6]]); // Tamaño de la gráfica
+
+                    const { nodes: sankeyNodes, links: sankeyLinks } = sankey({ nodes, links });
+
+                    const svg = d3.select('#sankey-container')
+                        .append('svg')
+                        .attr('width', 800)
+                        .attr('height', 600);
+
+                    // Renderizar los nodos
+                    svg.append('g')
+                        .selectAll('rect')
+                        .data(sankeyNodes)
+                        .enter()
+                        .append('rect')
+                        .attr('x', d => d.x0)
+                        .attr('y', d => d.y0)
+                        .attr('height', d => d.y1 - d.y0)
+                        .attr('width', d => d.x1 - d.x0)
+                        .style('fill', 'steelblue');
+
+                    // Renderizar los enlaces
+                    svg.append('g')
+                        .selectAll('path')
+                        .data(sankeyLinks)
+                        .enter()
+                        .append('path')
+                        .attr('d', d3.sankeyLinkHorizontal())
+                        .style('stroke', '#000')
+                        .style('fill', 'none');
+                })
+                .catch(error => console.error('Error al cargar los datos:', error));
+        });
+    </script>
+</body>
+</html>
